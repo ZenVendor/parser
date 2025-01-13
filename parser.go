@@ -1,4 +1,4 @@
-package main
+package parser
 
 import (
 	"fmt"
@@ -7,16 +7,16 @@ import (
 )
 
 type Parser struct {
-	verb   int
-	args   []int
-	kwargs map[int]interface{}
+	Verb   int
+	Args   []int
+	Kwargs map[int]interface{}
 }
 
 func NewParser(defaultVerb int, defaultArgs []int, defaultKwargs map[int]interface{}) (Parser, error) {
 	var p = Parser{
-		verb:   0,
-		args:   make([]int, 0, 2),
-		kwargs: map[int]interface{}{},
+		Verb:   0,
+		Args:   make([]int, 0, 2),
+		Kwargs: map[int]interface{}{},
 	}
 	for _, arg := range defaultArgs {
 		if !slices.Contains(verbValidArgMap()[defaultVerb], arg) {
@@ -30,30 +30,30 @@ func NewParser(defaultVerb int, defaultArgs []int, defaultKwargs map[int]interfa
 			return p, err
 		}
 	}
-	p.verb = defaultVerb
-	p.args = defaultArgs
-	p.kwargs = defaultKwargs
+	p.Verb = defaultVerb
+	p.Args = defaultArgs
+	p.Kwargs = defaultKwargs
 	return p, nil
 }
 
 func (p *Parser) Print() {
-	fmt.Printf("Command: %d\n", p.verb)
+	fmt.Printf("Command: %d\n", p.Verb)
 	fmt.Printf("Switches:")
-	for _, s := range p.args {
+	for _, s := range p.Args {
 		fmt.Printf(" %d", s)
 	}
 	fmt.Printf("\nParameters:\n")
-	for key, value := range p.kwargs {
+	for key, value := range p.Kwargs {
 		fmt.Printf("%d: %s\n", key, value)
 	}
 }
 
 func (p *Parser) ToString() string {
-	str := fmt.Sprintf("%d -", p.verb)
-	for _, s := range p.args {
+	str := fmt.Sprintf("%d -", p.Verb)
+	for _, s := range p.Args {
 		str = fmt.Sprintf("%s %d", str, s)
 	}
-	for key, value := range p.kwargs {
+	for key, value := range p.Kwargs {
 		str = fmt.Sprintf("%s %d:%s", str, key, value)
 	}
 	return str
@@ -61,23 +61,23 @@ func (p *Parser) ToString() string {
 
 func (p *Parser) Parse(args []string) error {
 	if len(args) == 0 {
-		if p.verb == INVALID_ARG {
+		if p.Verb == INVALID_ARG {
 			err := fmt.Errorf("No arguments provided")
 			return err
 		}
 		return nil
 	}
-	p.args = make([]int, 0, 2)
-	p.kwargs = map[int]interface{}{}
+	p.Args = make([]int, 0, 2)
+	p.Kwargs = map[int]interface{}{}
 
-	p.verb = verbMap()[args[0]]
-	if p.verb == INVALID_ARG {
+	p.Verb = verbMap()[args[0]]
+	if p.Verb == INVALID_ARG {
 		err := fmt.Errorf("Invalid command \"%s\"", args[0])
 		return err
 	}
 
 	argsStart := 1
-	if verbValKey := verbValueMap()[p.verb]; verbValKey != INVALID_ARG {
+	if verbValKey := verbValueMap()[p.Verb]; verbValKey != INVALID_ARG {
 		if len(args) < 2 {
 			err := fmt.Errorf("Command \"%s\" requires a value", args[0])
 			return err
@@ -86,7 +86,7 @@ func (p *Parser) Parse(args []string) error {
 		if err != nil {
 			return err
 		}
-		p.kwargs[verbValKey] = verbVal
+		p.Kwargs[verbValKey] = verbVal
 		argsStart = 2
 	}
 
@@ -98,11 +98,11 @@ func (p *Parser) Parse(args []string) error {
 				err := fmt.Errorf("Invalid argument %s", arg)
 				return err
 			}
-			if !slices.Contains(verbValidArgMap()[p.verb], sw) {
+			if !slices.Contains(verbValidArgMap()[p.Verb], sw) {
 				err := fmt.Errorf("Command %s does not support argument %s", args[0], arg)
 				return err
 			}
-			p.args = append(p.args, sw)
+			p.Args = append(p.Args, sw)
 		} else {
 			key := kwargMap()[kwarg[0]]
 			if key == INVALID_ARG {
@@ -110,7 +110,7 @@ func (p *Parser) Parse(args []string) error {
 				return err
 			}
 			value := kwarg[1]
-			if !slices.Contains(verbValidArgMap()[p.verb], key) {
+			if !slices.Contains(verbValidArgMap()[p.Verb], key) {
 				err := fmt.Errorf("Command %s does not support argument %s", args[0], arg)
 				return err
 			}
@@ -118,7 +118,7 @@ func (p *Parser) Parse(args []string) error {
 			if err != nil {
 				return err
 			}
-			p.kwargs[key] = val
+			p.Kwargs[key] = val
 		}
 	}
 

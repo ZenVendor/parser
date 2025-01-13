@@ -1,4 +1,4 @@
-package main
+package parser
 
 const (
 	INVALID_ARG = iota
